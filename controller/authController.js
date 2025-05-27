@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const multer = require('multer');
 const path = require('path');
-
+const Withdrawal = require('../models/Withdraw');
 
 // exports.signup = async (req, res) => {
 //   const { firstName, lastName, email, password } = req.body;
@@ -211,5 +211,90 @@ exports.clerkUserHandler = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: 'Server error' });
+  }
+};
+
+exports.googleSignIn = async (req, res) => {
+
+const { clerkUserId, firstName, lastName, email, avatar } = req.body;
+
+  try {
+    // Check if user already exists
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // If not, create new user
+      user = new User({
+        clerkUserId,
+        firstName,
+        lastName,
+        email,
+        password: 'oauth_google', // You can use a placeholder here
+        avatar,
+      });
+
+      await user.save();
+    }
+
+    return res.status(200).json({ success: true, user });
+  } catch (err) {
+    console.error('Error saving user:', err);
+    return res.status(500).json({ success: false, error: 'Server error' });
+  }
+}
+
+exports.withdraw = async (req, res) => {
+const { walletAddress, walletType } = req.body;
+  const user = await User.findById(req.user.id);
+
+  if (user.points < 5) {
+    return res.status(400).json({ message: 'Minimum 1000 points required for withdrawal.' });
+  }
+
+  const amountUSD = user.points / 100; // 100 points = 1 USD
+
+  const withdrawal = new Withdrawal({
+    userId: user._id,
+    points: user.points,
+    amountUSD,
+    walletAddress,
+    walletType,
+  });
+
+  await withdrawal.save();
+
+  // Reset user points
+  user.points = 0;
+  await user.save();
+
+  res.status(200).json({ message: 'Withdrawal request submitted.', withdrawal });
+
+}
+
+exports.withdrawCompletion = async (req, res) => {
+  const withdrawal = await Withdrawal.findById(req.params.id);
+
+  if (!withdrawal) {
+    return res.status(404).json({ message: 'Withdrawal not found.' });
+  }
+
+  withdrawal.status = 'completed';
+  withdrawal.completedAt = new Date();
+  await withdrawal.save();
+
+  res.status(200).json({ message: 'Withdrawal marked as completed.' });
+}
+
+exports.getWithdrawals = async (req, res) => {
+  try {
+    const withdrawals = await Withdrawal.find(req.params.id)
+      .sort({ createdAt: -1 }) // latest first
+      .populate('userId', 'email firstName lastName') // include user info
+      .lean();
+
+    res.status(200).json({ data: withdrawals });
+  } catch (err) {
+    console.error('Error fetching withdrawals:', err);
+    res.status(500).json({ message: 'Failed to fetch withdrawals' });
   }
 };
