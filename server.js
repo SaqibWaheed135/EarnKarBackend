@@ -3,6 +3,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const cors = require('cors');
+const path=require('path');
 
 dotenv.config();
 connectDB();
@@ -14,7 +15,10 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 //app.use('/api/reward', require('./routes/rewardRoutes'));
-app.use('/uploads', express.static('uploads'));
+// app.use('/uploads', express.static('uploads'));
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 
 const PORT = process.env.PORT || 5000;
