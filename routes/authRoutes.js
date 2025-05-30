@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { signup, login, getProfile, updateProfile, uploadProfileImage, reward, clerkUserHandler, googleSignIn, withdraw, withdrawCompletion, getWithdrawals } = require('../controller/authController');
+const { signup, login, getProfile, updateProfile, uploadProfileImage, reward, clerkUserHandler, googleSignIn, withdraw, withdrawCompletion, getWithdrawals, getProfileByAdmin, getAllUsers } = require('../controller/authController');
 const protect = require('../middleware/authmiddlerware');
 
 router.post('/signup', signup);
 router.post('/login', login);
 router.get('/profile', protect, getProfile);
+router.get('/getUsers', getAllUsers);
 router.put('/profile', protect, updateProfile);  // <-- this must exist
 router.put('/profile/image', protect, uploadProfileImage);
 router.post('/reward', reward);
