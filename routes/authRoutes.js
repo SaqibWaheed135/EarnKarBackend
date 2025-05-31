@@ -13,7 +13,7 @@ router.put('/profile', protect, updateProfile);  // <-- this must exist
 router.put('/profile/image', protect, uploadProfileImage);
 router.post('/reward', reward);
 router.post('/clerk-user', clerkUserHandler);
-router.post('/googleSignIn', protect, googleSignIn);
+router.post('/googleSignIn',googleSignIn);
 router.post('/withdraw', protect, withdraw);
 router.post('/withdrawals/:id/complete', withdrawCompletion);
 router.get('/withdrawals', getWithdrawals);
